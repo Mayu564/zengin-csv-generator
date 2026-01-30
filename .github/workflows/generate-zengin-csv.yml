@@ -23,8 +23,8 @@ jobs:
       with:
         python-version: '3.x' # Python 3.8, 3.9, 3.10, 3.11, 3.12 など
 
-    - name: Install zengin-py library
-      run: pip install zengin
+    - name: Install zengin-code library
+      run: pip install zengin-code
 
     - name: Run Python script to generate Zengin CSV
       run: python generate_zengin_csv.py
