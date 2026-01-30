@@ -1,30 +1,44 @@
 import csv
-import zengin_code as zengin
+import zengin_code as zengin # ここは既に修正済みのはずです
 import datetime
 import os
 
 def generate_zengin_data():
     """
-    zengin-pyライブラリを使用して銀行・支店データを取得し、
+    zengin-codeライブラリを使用して銀行・支店データを取得し、
     指定された形式で整形して返す。
     """
     data = []
-    # zengin.banks()で全ての銀行情報を取得
-    # zengin.Bankはイテレータなので、リストに変換して処理する
-    banks = list(zengin.banks())
+    # zengin.Bank.all()で全ての銀行情報を取得
+    banks_data = zengin.Bank.all() # ここを修正
 
-    for bank in banks:
-        # 銀行に支店が存在するか確認
-        if bank.branches:
-            for branch in bank.branches:
+    for bank_data in banks_data: # ここも修正
+        # 銀行コードがないものはスキップ (稀にデータに不備がある場合を想定)
+        if not bank_data.code:
+            continue
+
+        # 支店情報を取得
+        # zengin_codeではbank_data.branches.all()で全ての支店データを取得します
+        branches_data = bank_data.branches.all()
+
+        if branches_data:
+            for branch_data in branches_data: # ここも修正
+                # 支店コードがないものもスキップ (稀にデータに不備がある場合を想定)
+                if not branch_data.code:
+                    continue
+
                 data.append({
-                    "銀行番号": bank.code,
-                    "銀行名カナ": bank.kana,
-                    "支店番号": branch.code,
-                    "支店名カナ": branch.kana,
+                    "銀行番号": bank_data.code,
+                    "銀行名カナ": bank_data.kana,
+                    "支店番号": branch_data.code,
+                    "支店名カナ": branch_data.kana,
                 })
         else:
-            # 支店情報がない銀行も出力したい場合は、ここに追加
+            # 支店情報がない銀行も出力したい場合は、以下のような処理を追加
+            # ただし、全銀協のデータでは通常、支店がない銀行は掲載されないか、
+            # もしくは本支店コードが同じ場合が多いです。
+            # 例えば、本店情報のみを記載する場合など。
+            # 今回は支店情報があるもののみを対象とします。
             pass
 
     return data
@@ -34,7 +48,7 @@ def main():
     data_to_write = generate_zengin_data()
 
     if not data_to_write:
-        print("No data to write for Zengin codes.")
+        print("No data to write for Zengin codes. It might be an issue with data retrieval or processing.")
         return
 
     # ヘッダーを生成 (順序を保証するためにリストで指定)
