@@ -1,5 +1,5 @@
 import csv
-import zengin_code as zengin # ここは既に修正済みのはずです
+import zengin_code as zengin
 import datetime
 import os
 
@@ -9,37 +9,34 @@ def generate_zengin_data():
     指定された形式で整形して返す。
     """
     data = []
-    # zengin.Bank.all()で全ての銀行情報を取得
+    # zengin.Bank.all は、{銀行コード: Bankオブジェクト} のOrderedDict
     banks_data = zengin.Bank.all
 
-    for bank_data in banks_data: # ここも修正
-        # 銀行コードがないものはスキップ (稀にデータに不備がある場合を想定)
-        if not bank_data.code:
+    # banks_data の値が zengin.Bank オブジェクトなので、values() でループ
+    for bank in banks_data.values(): # ここを修正！
+
+        # bank.code は zengin.Bank オブジェクトの属性として存在します
+        if not bank.code:
             continue
 
-        # 支店情報を取得
-        # zengin_codeではbank_data.branches.all()で全ての支店データを取得します
-        branches_data = bank_data.branches.all()
+        # bank.branches も {支店コード: Branchオブジェクト} のOrderedDict
+        branches_data = bank.branches
 
         if branches_data:
-            for branch_data in branches_data: # ここも修正
-                # 支店コードがないものもスキップ (稀にデータに不備がある場合を想定)
-                if not branch_data.code:
+            # branches_data の値が zengin.Branch オブジェクトなので、values() でループ
+            for branch in branches_data.values(): # ここを修正！
+                # branch.code も zengin.Branch オブジェクトの属性として存在します
+                if not branch.code:
                     continue
 
                 data.append({
-                    "銀行番号": bank_data.code,
-                    "銀行名カナ": bank_data.kana,
-                    "支店番号": branch_data.code,
-                    "支店名カナ": branch_data.kana,
+                    "銀行番号": bank.code,
+                    "銀行名カナ": bank.kana,
+                    "支店番号": branch.code,
+                    "支店名カナ": branch.kana,
                 })
         else:
-            # 支店情報がない銀行も出力したい場合は、以下のような処理を追加
-            # ただし、全銀協のデータでは通常、支店がない銀行は掲載されないか、
-            # もしくは本支店コードが同じ場合が多いです。
-            # 例えば、本店情報のみを記載する場合など。
-            # 今回は支店情報があるもののみを対象とします。
-            pass
+            pass # 支店がない場合はスキップ
 
     return data
 
