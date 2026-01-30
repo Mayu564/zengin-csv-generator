@@ -1,0 +1,36 @@
+name: Generate Zengin Codes CSV
+
+on:
+  push:
+    branches:
+      - main # mainブランチへのプッシュ時に実行
+  schedule:
+    # 毎日UTC午前0時（日本時間午前9時）に実行
+    # データの更新頻度に合わせて調整してください
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 手動実行を許可
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' # Python 3.8, 3.9, 3.10, 3.11, 3.12 など
+
+    - name: Install zengin-py library
+      run: pip install zengin
+
+    - name: Run Python script to generate Zengin CSV
+      run: python generate_zengin_csv.py
+
+    - name: Upload generated CSV as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: zengin-codes-csv
+        path: zengin_codes.csv # 生成されたCSVファイルのパス
