@@ -1,5 +1,5 @@
 import csv
-import zengin
+import zengin_code as zengin
 import datetime
 import os
 
