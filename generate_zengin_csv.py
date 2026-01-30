@@ -10,7 +10,7 @@ def generate_zengin_data():
     """
     data = []
     # zengin.Bank.all()で全ての銀行情報を取得
-    banks_data = zengin.Bank.all() # ここを修正
+    banks_data = zengin.Bank.all
 
     for bank_data in banks_data: # ここも修正
         # 銀行コードがないものはスキップ (稀にデータに不備がある場合を想定)
