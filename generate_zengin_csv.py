@@ -53,7 +53,7 @@ def main():
 
     # CSVファイルの出力
     try:
-        with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
+        with open(output_filename, 'w', newline='', encoding='shift_jis') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(data_to_write)
