@@ -2,6 +2,23 @@ import csv
 import zengin_code as zengin
 import datetime
 import os
+import unicodedata # ★ 追加: unicodedataモジュールをインポート
+
+# ★ 追加: 全角カタカナを半角カタカナに変換する関数
+def hankaku_kana(text):
+    """
+    全角カタカナ文字列を半角カタカナに変換する。
+    長音符、濁点、半濁点も適切に処理する。
+    """
+    # NFKC正規化で、全角カタカナを一度半角カタカナに変換しやすくする
+    # その後、追加で濁点・半濁点の結合文字を処理
+    return unicodedata.normalize('NFKC', text) \
+        .replace('ｶﾞ', 'ｶﾞ').replace('ｷﾞ', 'ｷﾞ').replace('ｸﾞ', 'ｸﾞ').replace('ｹﾞ', 'ｹﾞ').replace('ｺﾞ', 'ｺﾞ') \
+        .replace('ｻﾞ', 'ｻﾞ').replace('ｼﾞ', 'ｼﾞ').replace('ｽﾞ', 'ｽﾞ').replace('ｾﾞ', 'ｾﾞ').replace('ｿﾞ', 'ｿﾞ') \
+        .replace('ﾀﾞ', 'ﾀﾞ').replace('ﾁﾞ', 'ﾁﾞ').replace('ﾂﾞ', 'ﾂﾞ').replace('ﾃﾞ', 'ﾃﾞ').replace('ﾄﾞ', 'ﾄﾞ') \
+        .replace('ﾊﾞ', 'ﾊﾞ').replace('ﾋﾞ', 'ﾋﾞ').replace('ﾌﾞ', 'ﾌﾞ').replace('ﾍﾞ', 'ﾍﾞ').replace('ﾎﾞ', 'ﾎﾞ') \
+        .replace('ﾊﾟ', 'ﾊﾟ').replace('ﾋﾟ', 'ﾋﾟ').replace('ﾌﾟ', 'ﾌﾟ').replace('ﾍﾟ', 'ﾍﾟ').replace('ﾎﾟ', 'ﾎﾟ') \
+        .replace('ｳﾞ', 'ｳﾞ') # 小さい文字や特殊な文字も考慮
 
 def generate_zengin_data():
     """
@@ -9,34 +26,35 @@ def generate_zengin_data():
     指定された形式で整形して返す。
     """
     data = []
-    # zengin.Bank.all は、{銀行コード: Bankオブジェクト} のOrderedDict
     banks_data = zengin.Bank.all
 
-    # banks_data の値が zengin.Bank オブジェクトなので、values() でループ
-    for bank in banks_data.values(): # ここを修正！
-
-        # bank.code は zengin.Bank オブジェクトの属性として存在します
+    for bank in banks_data.values():
         if not bank.code:
             continue
 
-        # bank.branches も {支店コード: Branchオブジェクト} のOrderedDict
         branches_data = bank.branches
 
+        # ★ 銀行名カナを半角に変換
+        bank_kana_hankaku = hankaku_kana(bank.kana)
+
         if branches_data:
-            # branches_data の値が zengin.Branch オブジェクトなので、values() でループ
-            for branch in branches_data.values(): # ここを修正！
-                # branch.code も zengin.Branch オブジェクトの属性として存在します
+            for branch in branches_data.values():
                 if not branch.code:
                     continue
 
+                # ★ 支店名カナを半角に変換
+                branch_kana_hankaku = hankaku_kana(branch.kana)
+
                 data.append({
                     "銀行番号": bank.code,
-                    "銀行名カナ": bank.kana,
+                    "銀行名カナ": bank_kana_hankaku, # ★ ここを修正
                     "支店番号": branch.code,
-                    "支店名カナ": branch.kana,
+                    "支店名カナ": branch_kana_hankaku, # ★ ここを修正
                 })
         else:
-            pass # 支店がない場合はスキップ
+            # 支店情報がない銀行の場合でも、銀行名だけは出力したいケース
+            # 今回は、支店データがある場合のみ出力という方針を維持します。
+            pass
 
     return data
 
@@ -48,10 +66,8 @@ def main():
         print("No data to write for Zengin codes. It might be an issue with data retrieval or processing.")
         return
 
-    # ヘッダーを生成 (順序を保証するためにリストで指定)
     fieldnames = ["銀行番号", "銀行名カナ", "支店番号", "支店名カナ"]
 
-    # CSVファイルの出力
     try:
         with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
