@@ -3,7 +3,7 @@ name: Generate Zengin Codes CSV
 on:
   push:
     branches:
-      - main # mainブランチへのプッシュ時に実行
+      - main # mainブランチへのプッシュ時に実行 (変更したい場合はここを変更)
   schedule:
     # 毎日UTC午前0時（日本時間午前9時）に実行
     # データの更新頻度に合わせて調整してください
@@ -26,28 +26,27 @@ jobs:
     - name: Install zengin-code library
       run: pip install zengin-code
 
-    - name: Install mojimoji library # ここにこの行を追加/確認
-      run: pip install mojimoji # ここにこの行を追加/確認
+    - name: Install mojimoji library # 半角カタカナ変換ライブラリ
+      run: pip install mojimoji
 
     - name: Run Python script to generate Zengin CSV
       run: python generate_zengin_csv.py
 
-    - name: Upload generated CSV as artifact
+    - name: Upload generated CSV as artifact # GitHub Actionsの成果物として保存 (ダウンロード用)
       uses: actions/upload-artifact@v4
       with:
         name: zengin-codes-csv
         path: zengin_codes.csv # 生成されたCSVファイルのパス
 
-            # ... 既存のUpload generated CSV as artifact の後に追加 ...
-
-    - name: Commit and push CSV (to main branch)
-      # このステップは、リポジトリへのプッシュがトリガーの場合、無限ループになる可能性があるので注意
-      # cron での実行時のみコミットするなどの工夫が必要です
-      if: github.event_name == 'schedule' # スケジュール実行時のみコミットする例
+    - name: Commit and push CSV to repository # 生成されたCSVをリポジトリにコミット
+      # このステップは、スケジュール実行時と手動実行時のみに限定します
+      # こうすることで、CSVファイルのコミットが原因で、
+      # pushイベントのワークフローが無限ループするのを防ぎます。
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       run: |
         git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add zengin_codes.csv
-        # 変更がなければコミットしないようにする
-        git diff-index --quiet HEAD || git commit -m "feat: Update zengin_codes.csv (skip ci)"
+        # 変更がなければコミットしないようにする (エラー防止)
+        git diff-index --quiet HEAD || git commit -m "feat: Update zengin_codes.csv [skip ci]"
         git push
