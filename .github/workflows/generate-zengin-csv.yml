@@ -26,6 +26,9 @@ jobs:
     - name: Install zengin-code library
       run: pip install zengin-code
 
+    - name: Install mojimoji library # ここにこの行を追加/確認
+      run: pip install mojimoji # ここにこの行を追加/確認
+
     - name: Run Python script to generate Zengin CSV
       run: python generate_zengin_csv.py
 
