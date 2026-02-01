@@ -1,2 +1,2 @@
 # zengin-csv-generator
-WF取込用の全銀データCSV作成
+全銀データCSV作成
